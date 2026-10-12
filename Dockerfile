@@ -23,8 +23,8 @@ RUN dotnet publish "WasteManagementAPI.csproj" -c Release -o /app/publish /p:Use
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
-# Create a non-root user for security
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+# Create a non-root user for security (Debian-based image)
+RUN groupadd --system appgroup && useradd --system --gid appgroup appuser
 USER appuser
 
 COPY --from=publish /app/publish .
