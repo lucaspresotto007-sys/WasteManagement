@@ -1,0 +1,186 @@
+name: CI/CD — Waste Management ESG API
+
+# =============================================================================
+# Triggers:
+#   - Push to 'main'    → build → test → deploy-production
+#   - Push to 'develop' → build → test → deploy-staging
+#   - Pull Request to 'main' → build → test (sem deploy)
+# =============================================================================
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  SOLUTION_PATH: './WasteManagement.slnx'
+  TEST_PROJECT: './WasteManagementAPI.Tests/WasteManagementAPI.Tests.csproj'
+  # Mock values used only inside the pipeline for compose validation
+  SA_PASSWORD: Pipeline_Mock_Pass123#
+  JWT_KEY: pipeline_mock_jwt_key_for_ci_only
+  JWT_ISSUER: WasteManagementAPI
+  JWT_AUDIENCE: WasteManagementAPI
+
+# =============================================================================
+# JOB 1 — BUILD
+# Restores dependencies and compiles the solution in Release mode.
+# =============================================================================
+jobs:
+  build:
+    name: 🔨 Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore NuGet packages
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: Build solution (Release)
+        run: dotnet build ${{ env.SOLUTION_PATH }} --no-restore -c Release
+
+      # Cache build output for subsequent jobs
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            **/bin/Release/
+            **/obj/
+          retention-days: 1
+
+# =============================================================================
+# JOB 2 — TEST
+# Runs all xUnit integration tests using InMemory database (no SQL Server needed).
+# =============================================================================
+  test:
+    name: 🧪 Test
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore NuGet packages
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: Run tests with coverage report
+        run: |
+          dotnet test ${{ env.TEST_PROJECT }} \
+            --configuration Release \
+            --logger "trx;LogFileName=test-results.trx" \
+            --logger "console;verbosity=detailed" \
+            --results-directory ./TestResults \
+            /p:CollectCoverage=true \
+            /p:CoverletOutputFormat=opencover
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: ./TestResults/*.trx
+          retention-days: 7
+
+# =============================================================================
+# JOB 3A — DEPLOY STAGING
+# Runs only on push to 'develop'. Validates and simulates staging deployment.
+# =============================================================================
+  deploy-staging:
+    name: 🚀 Deploy — Staging
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment:
+      name: staging
+      url: http://localhost:5001/swagger
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create .env for staging validation
+        run: |
+          echo "SA_PASSWORD=${{ env.SA_PASSWORD }}" >> .env
+          echo "JWT_KEY=${{ env.JWT_KEY }}" >> .env
+          echo "JWT_ISSUER=${{ env.JWT_ISSUER }}" >> .env
+          echo "JWT_AUDIENCE=${{ env.JWT_AUDIENCE }}" >> .env
+
+      - name: Validate staging Docker Compose configuration
+        run: docker compose -f docker-compose.staging.yml config
+
+      - name: Build staging Docker image
+        run: docker compose -f docker-compose.staging.yml build webapi
+
+      - name: Simulate staging deploy
+        run: |
+          echo "=============================================="
+          echo "  ✅ STAGING DEPLOY SIMULADO COM SUCESSO"
+          echo "  Branch:      ${{ github.ref_name }}"
+          echo "  Commit:      ${{ github.sha }}"
+          echo "  Ambiente:    Staging"
+          echo "  API URL:     http://localhost:5001"
+          echo "  Swagger URL: http://localhost:5001/swagger"
+          echo "  DB:          WasteManagementDb_Staging"
+          echo "  Imagem:      wastemanagementapi:staging"
+          echo "=============================================="
+
+# =============================================================================
+# JOB 3B — DEPLOY PRODUCTION
+# Runs only on push to 'main'. Validates and simulates production deployment.
+# =============================================================================
+  deploy-production:
+    name: 🏭 Deploy — Production
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: production
+      url: http://localhost:5002/swagger
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create .env for production validation
+        run: |
+          echo "SA_PASSWORD=${{ env.SA_PASSWORD }}" >> .env
+          echo "JWT_KEY=${{ env.JWT_KEY }}" >> .env
+          echo "JWT_ISSUER=${{ env.JWT_ISSUER }}" >> .env
+          echo "JWT_AUDIENCE=${{ env.JWT_AUDIENCE }}" >> .env
+
+      - name: Validate production Docker Compose configuration
+        run: docker compose -f docker-compose.prod.yml config
+
+      - name: Build production Docker image
+        run: docker compose -f docker-compose.prod.yml build webapi
+
+      - name: Simulate production deploy
+        run: |
+          echo "=============================================="
+          echo "  ✅ PRODUCTION DEPLOY SIMULADO COM SUCESSO"
+          echo "  Branch:      ${{ github.ref_name }}"
+          echo "  Commit:      ${{ github.sha }}"
+          echo "  Ambiente:    Production"
+          echo "  API URL:     http://localhost:5002"
+          echo "  Swagger URL: http://localhost:5002/swagger"
+          echo "  DB:          WasteManagementDb_Prod"
+          echo "  Imagem:      wastemanagementapi:prod"
+          echo "=============================================="

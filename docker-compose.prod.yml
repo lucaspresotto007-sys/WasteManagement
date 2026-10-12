@@ -1,0 +1,56 @@
+version: '3.8'
+
+# =============================================================================
+# Waste Management ESG API — PRODUCTION Environment
+# Usage: docker compose -f docker-compose.prod.yml up --build
+# =============================================================================
+
+networks:
+  esg_prod_network:
+    driver: bridge
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sql_server_esg_prod
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${SA_PASSWORD}
+    ports:
+      - "1435:1433"
+    volumes:
+      - sqlserver_prod_data:/var/opt/mssql
+    networks:
+      - esg_prod_network
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"${SA_PASSWORD}\" -Q 'SELECT 1' -No"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    restart: always
+
+  webapi:
+    image: wastemanagementapi:prod
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wastemanagement_api_prod
+    ports:
+      - "5002:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=db;Database=WasteManagementDb_Prod;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=${JWT_ISSUER:-WasteManagementAPI}
+      - Jwt__Audience=${JWT_AUDIENCE:-WasteManagementAPI}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - esg_prod_network
+    restart: always
+
+volumes:
+  sqlserver_prod_data:
+    driver: local

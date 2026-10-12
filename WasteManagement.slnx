@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="WasteManagementAPI.Tests/WasteManagementAPI.Tests.csproj" />
+  <Project Path="WasteManagementAPI/WasteManagementAPI.csproj" />
+</Solution>

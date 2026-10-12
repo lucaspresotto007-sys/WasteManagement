@@ -1,0 +1,46 @@
+# =============================================================================
+# .gitignore — Waste Management ESG API
+# =============================================================================
+
+# ─── Environment / Secrets ───────────────────────────────────────────────────
+.env
+*.env
+!.env.example
+
+# ─── .NET Build Outputs ──────────────────────────────────────────────────────
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.userprefs
+*.pidb
+
+# ─── Visual Studio / Rider ───────────────────────────────────────────────────
+.vs/
+.idea/
+*.sln.docstates
+*.DS_Store
+
+# ─── Test Results ─────────────────────────────────────────────────────────────
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# ─── Docker ──────────────────────────────────────────────────────────────────
+# Compose override files with local credentials (never commit)
+docker-compose.override.yml
+
+# ─── NuGet ───────────────────────────────────────────────────────────────────
+*.nupkg
+*.snupkg
+project.lock.json
+packages/
+
+# ─── Logs ────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── OS ──────────────────────────────────────────────────────────────────────
+Thumbs.db
+Desktop.ini

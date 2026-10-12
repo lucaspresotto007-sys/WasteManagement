@@ -1,0 +1,55 @@
+version: '3.8'
+
+# =============================================================================
+# Waste Management ESG API — STAGING Environment
+# Usage: docker compose -f docker-compose.staging.yml up --build
+# =============================================================================
+
+networks:
+  esg_staging_network:
+    driver: bridge
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sql_server_esg_staging
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${SA_PASSWORD}
+    ports:
+      - "1434:1433"
+    volumes:
+      - sqlserver_staging_data:/var/opt/mssql
+    networks:
+      - esg_staging_network
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"${SA_PASSWORD}\" -Q 'SELECT 1' -No"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
+
+  webapi:
+    image: wastemanagementapi:staging
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wastemanagement_api_staging
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Staging
+      - ConnectionStrings__DefaultConnection=Server=db;Database=WasteManagementDb_Staging;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=${JWT_ISSUER:-WasteManagementAPI}
+      - Jwt__Audience=${JWT_AUDIENCE:-WasteManagementAPI}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - esg_staging_network
+    restart: on-failure
+
+volumes:
+  sqlserver_staging_data:
+    driver: local
