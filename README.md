@@ -14,7 +14,7 @@ API RESTful desenvolvida em **C# .NET 10** para gestão inteligente de resíduos
 | Leticia Rosa Batista | RM566266 |
 | Natalia Kazue Kikuti | RM565156 |
 
-**Turma:** _(preencher)_ | **Ano:** 2026
+**Turma:** 2TDSOC | **Ano:** 2026
 
 ---
 
