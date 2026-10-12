@@ -9,8 +9,10 @@ API RESTful desenvolvida em **C# .NET 10** para gestão inteligente de resíduos
 
 | Nome | RM |
 |------|----|
-| _(preencher)_ | _(preencher)_ |
-| _(preencher)_ | _(preencher)_ |
+| Lucas Presotto Menotti | RM563647 |
+| Sarah Luísa Gaklik | RM565940 |
+| Leticia Rosa Batista | RM566266 |
+| Natalia Kazue Kikuti | RM565156 |
 
 **Turma:** _(preencher)_ | **Ano:** 2026
 
@@ -36,7 +38,7 @@ API RESTful desenvolvida em **C# .NET 10** para gestão inteligente de resíduos
 
 **1. Clone o repositório**
 ```bash
-git clone https://github.com/<seu-usuario>/<seu-repositorio>.git
+git clone https://github.com/lucaspresotto007-sys/WasteManagement.git
 cd <seu-repositorio>
 ```
 
@@ -170,7 +172,7 @@ git add .
 git commit -m "feat: initial DevOps integration"
 
 # 2. Crie o repositório no GitHub e faça o push
-git remote add origin https://github.com/<seu-usuario>/<seu-repositorio>.git
+git remote add origin https://github.com/lucaspresotto007-sys/WasteManagement.git
 git branch -M main
 git push -u origin main
 
@@ -245,34 +247,19 @@ O projeto possui 3 arquivos de composição:
 - **Variáveis de ambiente** — todas as credenciais lidas do `.env`, nunca hardcoded
 - **`restart: always`** — configurado no ambiente de produção para auto-recuperação
 
----
-
 ## 📸 Prints do funcionamento
 
-> **Instruções:** Substitua os placeholders abaixo pelos prints reais após executar o projeto.
+### Pipeline CI/CD — Deploy Staging (branch `develop`)
 
-### Pipeline CI/CD — GitHub Actions
+Pipeline disparado por push na branch `develop`. Build ✅ → Test ✅ → Deploy Staging ✅ — Deploy Production pulado (comportamento esperado).
 
-| Evidência | Print |
-|-----------|-------|
-| Pipeline completo (Build ✅ Test ✅ Deploy ✅) | _(inserir print da aba Actions)_ |
-| Job de testes com resultados | _(inserir print dos testes passando)_ |
-| Deploy Staging | _(inserir print do job deploy-staging)_ |
-| Deploy Production | _(inserir print do job deploy-production)_ |
+![Pipeline Staging](prints/staging.png)
 
-### Aplicação rodando localmente
+### Pipeline CI/CD — Deploy Production (branch `main`)
 
-| Evidência | Print |
-|-----------|-------|
-| `docker compose up` bem-sucedido | _(inserir print do terminal)_ |
-| `docker ps` mostrando containers ativos | _(inserir print do terminal)_ |
-| Swagger UI em http://localhost:5000/swagger | _(inserir print do navegador)_ |
-| Endpoint de login retornando token JWT | _(inserir print do Swagger/Postman)_ |
+Pipeline disparado por push na branch `main`. Build ✅ → Test ✅ → Deploy Production ✅ — Deploy Staging pulado (comportamento esperado).
 
-### Ambientes staging e produção
-
-| Evidência | Print |
-|-----------|-------|
+![Pipeline Production](prints/production.png)
 | Staging em http://localhost:5001/swagger | _(inserir print)_ |
 | Produção em http://localhost:5002/swagger | _(inserir print)_ |
 
@@ -345,6 +332,23 @@ Projetinho/
 ├── WasteManagement.slnx           # Solution file
 └── README.md                      # Esta documentação
 ```
+
+---
+
+## ✅ Checklist de Entrega
+
+| Item | Status |
+|------|--------|
+| Projeto compactado em .ZIP com estrutura organizada | ✅ |
+| Dockerfile funcional | ✅ |
+| docker-compose.yml com volumes, redes e variáveis de ambiente | ✅ |
+| docker-compose.staging.yml e docker-compose.prod.yml | ✅ |
+| Pipeline com etapas de build, teste e deploy (GitHub Actions) | ✅ |
+| Deploy realizado no ambiente **staging** (branch `develop`) | ✅ |
+| Deploy realizado no ambiente **produção** (branch `main`) | ✅ |
+| README.md com instruções e prints | ✅ |
+| `.env.example` com variáveis documentadas | ✅ |
+| Documentação técnica com evidências (PDF ou PPT) | ✅ |
 
 ---
 
