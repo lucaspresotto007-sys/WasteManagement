@@ -260,8 +260,8 @@ Pipeline disparado por push na branch `develop`. Build ✅ → Test ✅ → Depl
 Pipeline disparado por push na branch `main`. Build ✅ → Test ✅ → Deploy Production ✅ — Deploy Staging pulado (comportamento esperado).
 
 ![Pipeline Production](prints/production.png)
-| Staging em http://localhost:5001/swagger | _(inserir print)_ |
-| Produção em http://localhost:5002/swagger | _(inserir print)_ |
+
+> 🔗 Todas as execuções disponíveis em: https://github.com/lucaspresotto007-sys/WasteManagement/actions
 
 ---
 
